@@ -1,0 +1,3 @@
+﻿main.obj : error LNK2019: unresolved external symbol _SDL_CreateWindow referenced in function "void __cdecl SetupWindow(void)" (?SetupWindow@@YAXXZ)
+MSVCRTD.lib(exe_main.obj) : error LNK2019: unresolved external symbol _main referenced in function "int __cdecl invoke_main(void)" (?invoke_main@@YAHXZ)
+C:\Users\LukasW\source\repos\DirectX12Train\Debug\DirectX12Train.exe : fatal error LNK1120: 2 unresolved externals

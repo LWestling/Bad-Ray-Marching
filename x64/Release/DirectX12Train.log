@@ -1,0 +1,4 @@
+﻿  main.cpp
+main.obj : error LNK2001: unresolved external symbol SDL_CreateWindow
+MSVCRT.lib(exe_main.obj) : error LNK2001: unresolved external symbol main
+C:\Users\LukasW\source\repos\DirectX12Train\x64\Release\DirectX12Train.exe : fatal error LNK1120: 2 unresolved externals
