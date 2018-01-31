@@ -58,7 +58,7 @@ float SDFPlane(float4 nor, float3 pos)
 float mapWorld(float3 pos) {
     float timeM = fmod(abs(sin(time)), 5.f) * 1.3;
     float disp = sin(timeM * 2.3f * pos.x) * sin(timeM * 2.7f * pos.y) * sin(timeM * 1.6f * pos.z) * timeM * .25f;
-    float4 plane = normalize(float4(0.f, 1.f, 0.f, 10.f));
+    float4 plane = normalize(float4(0.f, 1.f, 0.f, 100.f));
     Cube c = cube1;
     c.pos.x -= timeM * 1.5;
 
@@ -99,10 +99,10 @@ float4 main(PS_IN input) : SV_TARGET
 {
     float4x4 VPMatrix = mul(viewMatrix, camMatrix);
 
-    float3 pos = float3(input.uv, 1.f);
+    float3 pos = float3(input.uv, -1.f);
     float3 eye = camPos;
     float3 forward = normalize(pos - eye);
-    //forward = normalize(mul(VPMatrix, float4(pos, 0.f)).xyz);
+    forward = normalize(mul(camMatrix, float4(pos, 0.f))).xyz;
 
     float dist = 0.f;
     for (int i = 0; i < MAX_STEPS; i++) {

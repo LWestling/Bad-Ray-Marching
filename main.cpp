@@ -2,6 +2,7 @@
 #include <d3dcompiler.h>
 #include <dxgi1_6.h>
 #include <SimpleMath.h>
+#include <algorithm>
 #include <time.h>
 #include <SDL.h>
 #include <string>
@@ -573,10 +574,9 @@ void UpdateConstantBuffers()
 {
     gTime.time = (SDL_GetTicks() - timeStart) * 0.0004f;
     gCamera.cam = DirectX::SimpleMath::Matrix::CreateLookAt(
-        { gEye.x, gEye.y, gEye.z },
-        { gDir.x, gDir.y, gDir.z },
+        gEye, gDir + gEye,
         { 0.f, 1.f, 0.f }
-    );
+    ).Invert();
     gCamera.view = DirectX::SimpleMath::Matrix::CreatePerspective(WIN_WIDTH, WIN_HEIGHT, 0.1f, 100.f);
 
     D3D12_RANGE range = { 0.f, 0.f };
@@ -607,40 +607,30 @@ void HandleSdlEvent(SDL_Event e)
             break;
         case SDLK_d:
         case SDLK_RIGHT:
-            gEye.x += 0.3f;
+            gEye += gDir.Cross(Vector3::Up) * 0.1f;
             break;
         case SDLK_a:
         case SDLK_LEFT:
-            gEye.x -= 0.3f;
+            gEye += gDir.Cross(Vector3::Up) * -0.1f;
             break;
         case SDLK_w:
-            gEye.z += 0.3f;
+            gEye += gDir * 0.333f;
             break;
         case SDLK_s:
-            gEye.z -= 0.3f;
-            break;
-        case SDLK_h:
-            gDir.x += 0.01f;
-            break;
-        case SDLK_g:
-            gDir.x -= 0.01f;
-            break;
-        case SDLK_t:
-            gDir.y += 0.01f;
-            break;
-        case SDLK_b:
-            gDir.y -= 0.01f;
+            gEye -= gDir * 0.333f;
             break;
         case SDLK_o:
             timeStart = SDL_GetTicks();
             break;
         }
-    }
+}
 
     if (e.type == SDL_MOUSEMOTION) {
         if (e.motion.state == SDL_PRESSED) {
-            Vector2 lastPos = Vector2(e.motion.xrel, e.motion.yrel);
-            gDir = Vector3(gDir.x, lastPos.x * 0.01f + gDir.y, lastPos.y * 0.01f + gDir.z);
+            gDir.x += e.motion.xrel * 0.01f;
+            gDir.y += e.motion.yrel * 0.01f;
+            std::clamp(gDir.y, 0.2f, 0.6f);
+            gDir.Normalize();
         }
     }
 
