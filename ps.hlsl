@@ -1,7 +1,7 @@
 /*
     If someone hack this, this is very inefficient and more of testing concepts and stuff
 */
-#define EPS 0.0001
+#define EPS 0.000001
 
 struct PS_IN {
     float4 pos : SV_POSITION;
@@ -62,7 +62,7 @@ float mapWorld(float3 pos) {
     Cube c = cube1;
     c.pos.x -= timeM * 1.5;
 
-    float dis_t = SDF(test, pos);
+    float dis_t = SDF(test, pos) + disp;
     float dis_t2 = SDF(test2, pos);
     float dis_t3 = SDF(test3, pos);
     float dis_t4 = SDFCube(cube1, pos);
