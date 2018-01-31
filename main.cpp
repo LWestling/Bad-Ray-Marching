@@ -13,6 +13,9 @@
 #define WIN_WIDTH 800
 #define WIN_HEIGHT 600
 
+#define RES_W 1920
+#define RES_H 1080
+
 #define VS_NAME L"vs.hlsl"
 #define VS_TARGET "vs_5_0"
 #define VS_MAIN "main"
@@ -83,10 +86,19 @@ struct Position {
     DirectX::SimpleMath::Vector4 pos, look;
     DirectX::SimpleMath::Matrix cam, view;
 } gCamera;
+struct TimeConst {
+    float time;
+    DirectX::SimpleMath::Vector3 stuff;
+} gTime;
 ID3D12Resource *gCameraRes;
-ID3D12DescriptorHeap *gCamHeap;
-DirectX::SimpleMath::Vector3 gEye = DirectX::SimpleMath::Vector3::Zero;
+ID3D12Resource *gTimeRes;
+DirectX::SimpleMath::Vector3 gEye = DirectX::SimpleMath::Vector3(0.f, 0.f, -10.f);
 DirectX::SimpleMath::Vector3 gDir = DirectX::SimpleMath::Vector3(0.f, 0.f, 1.f);
+
+ID3D12DescriptorHeap *gDescHeap;
+
+// extra stuff
+float timeStart;
 
 int main(int argc, char * argv[]);
 
@@ -106,7 +118,7 @@ void Render();
 void ReleaseMemory();
 
 void SetupConstantBuffer();
-void UpdateCameraBuffer();
+void UpdateConstantBuffers();
 
 void HandleSdlEvent(SDL_Event e);
 
@@ -260,7 +272,7 @@ void CreateRootSignature()
     range[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
     range[0].BaseShaderRegister = 0; // register(b0), b0, 0
     range[0].RegisterSpace = 0; // register(b0, space0), space0, 0. Space 0 is automaticly the space selected when no is available?
-    range[0].NumDescriptors = 1; // only one
+    range[0].NumDescriptors = 2; // two 
     range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
     // the table
@@ -400,7 +412,7 @@ void RenderLoop()
 
         Render();
         WaitForGpu();
-        UpdateCameraBuffer();
+        UpdateConstantBuffers();
         SDL_SetWindowTitle(gWindow, (std::string("DX12 Noob Stuff MS: ") + std::to_string(clock() - test) + " F: " + std::to_string(gFrameIndex)).c_str());
     }
 }
@@ -431,9 +443,9 @@ void Render()
     // root sign
     gCmdList->SetGraphicsRootSignature(gRootSign);
 
-    ID3D12DescriptorHeap* heaps[] = { gCamHeap };
+    ID3D12DescriptorHeap* heaps[] = { gDescHeap };
     gCmdList->SetDescriptorHeaps(ARRAYSIZE(heaps), heaps);
-    gCmdList->SetGraphicsRootDescriptorTable(0, gCamHeap->GetGPUDescriptorHandleForHeapStart());
+    gCmdList->SetGraphicsRootDescriptorTable(0, gDescHeap->GetGPUDescriptorHandleForHeapStart());
 
     ResourceBarrierTrans(
         gRenderTarget[gFrameIndex],
@@ -499,10 +511,10 @@ void SetupConstantBuffer()
     D3D12_DESCRIPTOR_HEAP_DESC dhDesc;
     ZeroMemory(&dhDesc, sizeof(dhDesc));
     dhDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-    dhDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // visible to shaders
-    dhDesc.NumDescriptors = 1; // one constant buffer
+    dhDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+    dhDesc.NumDescriptors = 2; // two constant buffer
 
-    gDevice->CreateDescriptorHeap(&dhDesc, IID_PPV_ARGS(&gCamHeap));
+    gDevice->CreateDescriptorHeap(&dhDesc, IID_PPV_ARGS(&gDescHeap));
 
     // memory properties
     D3D12_HEAP_PROPERTIES heapProp;
@@ -530,18 +542,36 @@ void SetupConstantBuffer()
         nullptr,
         IID_PPV_ARGS(&gCameraRes)
     ));
+    TOI(gDevice->CreateCommittedResource(
+        &heapProp,
+        D3D12_HEAP_FLAG_NONE,
+        &resDesc,
+        D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr,
+        IID_PPV_ARGS(&gTimeRes)
+    ));
+
+    UINT size = gDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    auto cdh = gDescHeap->GetCPUDescriptorHandleForHeapStart();
 
     D3D12_CONSTANT_BUFFER_VIEW_DESC cDesc;
     ZeroMemory(&cDesc, sizeof(cDesc));
     cDesc.BufferLocation = gCameraRes->GetGPUVirtualAddress();
-    cDesc.SizeInBytes = (sizeof(Position) + 255) & ~255;	// CB size is required to be 256-byte aligned.
-    gDevice->CreateConstantBufferView(&cDesc, gCamHeap->GetCPUDescriptorHandleForHeapStart());
+    cDesc.SizeInBytes = (sizeof(gCamera) + 255) & ~255;	// CB size is required to be 256-byte aligned.
+    gDevice->CreateConstantBufferView(&cDesc, cdh);
 
-    UpdateCameraBuffer();
+    cdh.ptr += size;
+
+    cDesc.BufferLocation = gTimeRes->GetGPUVirtualAddress();
+    cDesc.SizeInBytes = (sizeof(gTime) + 255) & ~255;	// CB size is required to be 256-byte aligned.
+    gDevice->CreateConstantBufferView(&cDesc, cdh);
+
+    UpdateConstantBuffers();
 }
 
-void UpdateCameraBuffer()
+void UpdateConstantBuffers()
 {
+    gTime.time = (SDL_GetTicks() - timeStart) * 0.0004f;
     gCamera.cam = DirectX::SimpleMath::Matrix::CreateLookAt(
         { gEye.x, gEye.y, gEye.z },
         { gDir.x, gDir.y, gDir.z },
@@ -551,9 +581,15 @@ void UpdateCameraBuffer()
 
     D3D12_RANGE range = { 0.f, 0.f };
     void *data;
+
     gCameraRes->Map(0, &range, &data);
     memcpy(data, &gCamera, sizeof(gCamera));
     gCameraRes->Unmap(0, nullptr);
+
+    void *data2;
+    gTimeRes->Map(0, &range, &data2);
+    memcpy(data2, &gTime, sizeof(gTime));
+    gTimeRes->Unmap(0, nullptr);
 }
 
 void HandleSdlEvent(SDL_Event e)
@@ -595,13 +631,16 @@ void HandleSdlEvent(SDL_Event e)
         case SDLK_b:
             gDir.y -= 0.01f;
             break;
+        case SDLK_o:
+            timeStart = SDL_GetTicks();
+            break;
         }
     }
 
     if (e.type == SDL_MOUSEMOTION) {
         if (e.motion.state == SDL_PRESSED) {
             Vector2 lastPos = Vector2(e.motion.xrel, e.motion.yrel);
-            gDir = Vector3(lastPos.x * 0.01f + gDir.x, gDir.y, lastPos.y * 0.01f + gDir.z);
+            gDir = Vector3(gDir.x, lastPos.x * 0.01f + gDir.y, lastPos.y * 0.01f + gDir.z);
         }
     }
 

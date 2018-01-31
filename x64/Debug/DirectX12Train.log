@@ -1,8 +1,9 @@
 ﻿  main.cpp
-c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(189): warning C4244: '=': conversion from 'LONG' to 'FLOAT', possible loss of data
-c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(190): warning C4244: '=': conversion from 'LONG' to 'FLOAT', possible loss of data
-c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(552): warning C4838: conversion from 'float' to 'SIZE_T' requires a narrowing conversion
-c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(552): warning C4244: 'initializing': conversion from 'float' to 'SIZE_T', possible loss of data
-c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(603): warning C4244: 'argument': conversion from 'Sint32' to 'float', possible loss of data
+c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(201): warning C4244: '=': conversion from 'LONG' to 'FLOAT', possible loss of data
+c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(202): warning C4244: '=': conversion from 'LONG' to 'FLOAT', possible loss of data
+c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(582): warning C4838: conversion from 'float' to 'SIZE_T' requires a narrowing conversion
+c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(582): warning C4244: 'initializing': conversion from 'float' to 'SIZE_T', possible loss of data
+c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(635): warning C4244: '=': conversion from 'Uint32' to 'float', possible loss of data
+c:\users\lukasw\source\repos\directx12train\directx12train\main.cpp(642): warning C4244: 'argument': conversion from 'Sint32' to 'float', possible loss of data
   DirectX12Train.vcxproj -> C:\Users\LukasW\source\repos\DirectX12Train\x64\Debug\DirectX12Train.exe
   DirectX12Train.vcxproj -> C:\Users\LukasW\source\repos\DirectX12Train\x64\Debug\DirectX12Train.pdb (Partial PDB)
