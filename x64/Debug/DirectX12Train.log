@@ -1,5 +1,5 @@
-﻿C:\Users\LukasW\source\repos\DirectX12Train\DirectX12Train\ps.hlsl(103,12-23): warning X3206: implicit truncation of vector type
-C:\Users\LukasW\source\repos\DirectX12Train\DirectX12Train\ps.hlsl(113,52-81): warning X3206: 'calcLightning': implicit truncation of vector type
+﻿C:\Users\LukasW\source\repos\DirectX12Train\DirectX12Train\ps.hlsl(83,11-45): warning X3206: implicit truncation of vector type
+C:\Users\LukasW\source\repos\DirectX12Train\DirectX12Train\ps.hlsl(109,12-23): warning X3206: implicit truncation of vector type
   
   compilation object save succeeded; see C:\Users\LukasW\source\repos\DirectX12Train\x64\Debug\ps.cso
   DirectX12Train.vcxproj -> C:\Users\LukasW\source\repos\DirectX12Train\x64\Debug\DirectX12Train.exe

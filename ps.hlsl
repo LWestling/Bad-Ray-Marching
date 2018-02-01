@@ -1,7 +1,7 @@
 /*
     If someone hack this, this is very inefficient and more of testing concepts and stuff
 */
-#define EPS 0.000001
+#define EPS 0.0001
 
 struct PS_IN {
     float4 pos : SV_POSITION;
@@ -57,12 +57,12 @@ float SDFPlane(float4 nor, float3 pos)
 /* World mapping */
 float mapWorld(float3 pos) {
     float timeM = fmod(abs(sin(time)), 5.f) * 1.3;
-    float disp = sin(timeM * 2.3f * pos.x) * sin(timeM * 2.7f * pos.y) * sin(timeM * 1.6f * pos.z) * timeM * .25f;
+    float disp = 0.1f;
     float4 plane = normalize(float4(0.f, 1.f, 0.f, 100.f));
     Cube c = cube1;
     c.pos.x -= timeM * 1.5;
 
-    float dis_t = SDF(test, pos) + disp;
+    float dis_t = SDF(test, pos);
     float dis_t2 = SDF(test2, pos);
     float dis_t3 = SDF(test3, pos);
     float dis_t4 = SDFCube(cube1, pos);
@@ -76,18 +76,24 @@ float mapWorld(float3 pos) {
 /* end of world mapping */
 
 /* LIGHTNING */
+#define SPEC_CONS 15.f
 float3 calcLightning(float3 normal, float3 pos) {
     float3 lightPos = float3( 0.f, 0.f, 5.f );
-    float3 diff = lightPos - pos;
-    return dot(normalize(diff), normal);
+    float3 toLight = normalize(lightPos - pos);
+    float toCam = normalize(camPos.xyz - pos);
+
+    float diffuse = dot(toLight, normal);
+    float spec = 0.08f * pow(max(dot(toCam, reflect(-toLight, normal)), 0.f), SPEC_CONS);
+
+    return diffuse + spec;
 }
 
-float4 getNormal(float3 p) {
-    return normalize(float4(
-        mapWorld(float3(p.x + EPS, p.y, p.z)) - mapWorld(float3(p.x - EPS, p.y, p.z)),
-        mapWorld(float3(p.x, p.y + EPS, p.z)) - mapWorld(float3(p.x, p.y - EPS, p.z)),
-        mapWorld(float3(p.x, p.y, p.z + EPS)) - mapWorld(float3(p.x, p.y, p.z - EPS)),
-        0.f
+float3 getNormal(float3 p) {
+    static float2 eps = float2(EPS, 0.f);
+    return normalize(float3(
+        mapWorld(p + eps.xyy) - mapWorld(p - eps.xyy),
+        mapWorld(p + eps.yxy) - mapWorld(p - eps.yxy),
+        mapWorld(p + eps.yyx) - mapWorld(p - eps.yyx)
     ));
 }
 /* END OF LIGTNING*/
@@ -110,7 +116,8 @@ float4 main(PS_IN input) : SV_TARGET
         float ret = mapWorld(p);
         if (ret < EPS)
         {
-            return float4(float3(1.f, 0.9f, 0.f) * calcLightning(getNormal(p), p), 0.f);
+            return float4(float3(0.4f, 0.3f, 0.f) * 
+            calcLightning(getNormal(p), p), 0.f);
         }
         dist += ret;
     }
