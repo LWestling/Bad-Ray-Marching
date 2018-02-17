@@ -56,9 +56,9 @@ float SDFPlane(float4 nor, float3 pos)
 
 /* World mapping */
 float mapWorld(float3 pos) {
-    float timeM = fmod(abs(sin(time)), 5.f) * 1.3;
+    float timeM = fmod(abs(sin(time)), 1.f) + 0.f;
     float disp = 0.1f;
-    float4 plane = normalize(float4(0.f, 1.f, 0.f, 100.f));
+    float4 plane = normalize(float4(sin(time + pos.x), 1.f, 0.f, 1.f));
     Cube c = cube1;
     c.pos.x -= timeM * 1.5;
 
@@ -69,14 +69,14 @@ float mapWorld(float3 pos) {
 
     float dis_plane = SDFPlane(plane, pos);
 
-    return min(dis_plane, max(-dis_t2, max(-dis_t3, max(dis_t, dis_t4))));
+    return max(-dis_t2, max(-dis_t3, max(dis_t, dis_t4)));
    // return max(dis_t4, max(dis_t2, -dis_t)) + disp;
    // return max(-dis_t2, max(dis_t4, dis_t)) + disp;
 }
 /* end of world mapping */
 
 /* LIGHTNING */
-#define SPEC_CONS 15.f
+#define SPEC_CONS 3.f
 float3 calcLightning(float3 normal, float3 pos) {
     float3 lightPos = float3( 0.f, 0.f, 5.f );
     float3 toLight = normalize(lightPos - pos);
