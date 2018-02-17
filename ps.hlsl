@@ -1,5 +1,5 @@
 /*
-    If someone hack this, this is very inefficient and more of testing concepts and stuff
+    This is inefficient and bad. But fun.
 */
 #define EPS 0.0001
 
@@ -31,11 +31,11 @@ struct Cube {
     float d;
 };
 
-static Sphere test = { float3(0.f, 0.f, 25.f), 1.3f };
-static Sphere test2 = { float3(-1.4f, 0.f, 24.2f), 0.9f };
-static Sphere test3 = { float3(0.f, 0.f, 25.f), 1.1f };
+static Sphere test = { float3(0.f, 0.f, 15.f), 1.3f };
+static Sphere test2 = { float3(-1.4f, 0.f, 14.2f), 0.9f };
+static Sphere test3 = { float3(0.f, 0.f, 15.f), 1.1f };
 
-static Cube cube1 = { float3(0.f, 0.f, 25.f), 0.95f };
+static Cube cube1 = { float3(0.f, 0.f, 15.f), 0.95f };
 
 /* SDF */
 float SDF(Sphere sphere, float3 pos) {
@@ -56,11 +56,11 @@ float SDFPlane(float4 nor, float3 pos)
 
 /* World mapping */
 float mapWorld(float3 pos) {
-    float timeM = fmod(abs(sin(time)), 1.f) + 0.f;
+    float timeM = fmod(abs(sin(time)), 1.f) - 1.5f;
     float disp = 0.1f;
     float4 plane = normalize(float4(sin(time + pos.x), 1.f, 0.f, 1.f));
     Cube c = cube1;
-    c.pos.x -= timeM * 1.5;
+    c.pos.x -= timeM * 3.5;
 
     float dis_t = SDF(test, pos);
     float dis_t2 = SDF(test2, pos);
@@ -70,8 +70,6 @@ float mapWorld(float3 pos) {
     float dis_plane = SDFPlane(plane, pos);
 
     return max(-dis_t2, max(-dis_t3, max(dis_t, dis_t4)));
-   // return max(dis_t4, max(dis_t2, -dis_t)) + disp;
-   // return max(-dis_t2, max(dis_t4, dis_t)) + disp;
 }
 /* end of world mapping */
 
